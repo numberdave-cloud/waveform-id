@@ -440,7 +440,7 @@
 <script>
   // ========== CONFIG ==========
   const WAVEFORMS = ['sine', 'triangle', 'square', 'sawtooth'];
-  const NOTE_FREQS = { A1: 55, A2: 110, A3: 220, A4: 440, A5: 880 };
+  const NOTE_FREQS = { A1: 55, A2: 110, A3: 220, A4: 440, A5: 880, A6: 1760, C3: 130.81 };
 
   const OSC_PEAK_DBFS = -12;
 
@@ -450,24 +450,24 @@
 
   const ADVANCE_DELAY_MS = 500;
 
-  // A3 single-cycle duration; level 100 uses 4 cycles of A3 (~18.18ms)
-  const A3_PERIOD = 1 / NOTE_FREQS.A3; // ~4.55ms
-  const LVL_100_DUR = 4 * A3_PERIOD;   // ~18.18ms
+  // Level 100 plays a single cycle of C3 (~7.65ms)
+  const LVL_100_DUR = 1 / NOTE_FREQS.C3;
 
   // Streak-based difficulty escalation. Ordered most-restrictive-first;
   // getLevel() picks the first whose threshold the current streak meets.
   // Rule: when note duration shortens, gap halves too.
   const STREAK_LEVELS = [
-    { atStreak: 100, sequence: ['A3'],                          noteDur: LVL_100_DUR, gap: 0      },
-    { atStreak: 80,  sequence: ['A4'],                          noteDur: 0.035,     gap: 0      },
-    { atStreak: 70,  sequence: ['A4'],                          noteDur: 0.05,      gap: 0      },
-    { atStreak: 60,  sequence: ['A1','A2','A3','A4','A5'],      noteDur: 0.05,      gap: 0      },
-    { atStreak: 50,  sequence: ['A3'],                          noteDur: 0.125,     gap: 0      },
-    { atStreak: 40,  sequence: ['A1','A4'],                     noteDur: 0.125,     gap: 0.125  },
-    { atStreak: 30,  sequence: ['A1','A4'],                     noteDur: 0.25,      gap: 0.25   },
-    { atStreak: 20,  sequence: ['A3','A4','A3','A2','A3','A4'], noteDur: 0.25,      gap: 0.25   },
-    { atStreak: 10,  sequence: ['A4','A3','A2','A3'],           noteDur: 0.5,       gap: 0.5    },
-    { atStreak: 0,   sequence: ['A3','A4','A3','A2','A3','A4'], noteDur: 0.5,       gap: 0.5    }
+    { atStreak: 100, sequence: ['C3'],                          noteDur: LVL_100_DUR, gap: 0      },
+    { atStreak: 90,  sequence: ['A5'],                          noteDur: 0.035,       gap: 0      },
+    { atStreak: 80,  sequence: ['A4'],                          noteDur: 0.035,       gap: 0      },
+    { atStreak: 70,  sequence: ['A1'],                          noteDur: 0.05,        gap: 0      },
+    { atStreak: 60,  sequence: ['A1','A2','A3','A4','A5'],      noteDur: 0.05,        gap: 0      },
+    { atStreak: 50,  sequence: ['A3'],                          noteDur: 0.125,       gap: 0      },
+    { atStreak: 40,  sequence: ['A1','A4'],                     noteDur: 0.125,       gap: 0.125  },
+    { atStreak: 30,  sequence: ['A1','A4'],                     noteDur: 0.25,        gap: 0.25   },
+    { atStreak: 20,  sequence: ['A6','A5','A4','A3','A2','A1'], noteDur: 0.2,         gap: 0      },
+    { atStreak: 10,  sequence: ['A3','A4','A3','A2'],           noteDur: 0.25,        gap: 0.25   },
+    { atStreak: 0,   sequence: ['A3','A4','A3','A2','A3','A4'], noteDur: 0.5,         gap: 0.5    }
   ];
 
   function getLevel(s) {
@@ -662,7 +662,11 @@
 
   // ========== ROUND LOGIC ==========
   function pickRandomWave() {
-    return WAVEFORMS[Math.floor(Math.random() * WAVEFORMS.length)];
+    // Never repeat the same waveform in consecutive rounds.
+    const options = currentWave
+      ? WAVEFORMS.filter(w => w !== currentWave)
+      : WAVEFORMS;
+    return options[Math.floor(Math.random() * options.length)];
   }
 
   function clearWaveStates() {
